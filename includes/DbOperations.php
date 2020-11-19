@@ -492,10 +492,13 @@
                 set @fk_c_locale_code := 'en_US';
                 
                 insert into os3n_t_user_description(fk_i_user_id, fk_c_locale_code, s_info) values(@item_primary_key, @fk_c_locale_code, @s_info);
+                
                 commit;
             ";
             $result = $this->con->multi_query($query);
-            return $result; 
+            $results = array();
+            $results['error'] = $result;
+            return $results; 
         }
         public function checkPasswordByEmail($email, $password){
             $stmt = $this->con->prepare("select s_password, pk_i_id from os3n_t_user where s_email = ?;");
@@ -513,6 +516,14 @@
                 $returning['user_id'] = '';
             }
             return $returning;
+        }
+        public function getUserIdWhenRegistering($email, $password){
+            $stmt = $this->con->prepare("select pk_i_id from os3n_t_user where s_email = ? and s_password = ? ;");
+            $stmt->bind_param("ss", $email, $password);
+            $stmt->execute();
+            $stmt->bind_result($pk_i_id);
+            $stmt->fetch();
+            return $pk_i_id;
         }
     }
     

@@ -336,6 +336,7 @@ $app->post("/registeruser", function(Request $request, Response $response){
     $db = new DbOperations;
     $regions = $db->createNewUser($full_user_name, $user_name, $password, $email, $website, $landline, $mobile_no, $user_address,
                                     $zip,$has_company, $region_name, $city_name, $ip, $coord_lat, $coord_long, $user_desc);
+   
     if ($regions != false){
         $response_data['error'] = false;
         $response->write(json_encode($response_data));
@@ -350,11 +351,32 @@ $app->post("/registeruser", function(Request $request, Response $response){
                     ->withStatus(422);
     }
 });
+$app->post("/useridatregistration", function(Request $request, Response $response){
+    $request_data = $request->getParsedBody();
+    $password = $request_data['password'];
+    $email = $request_data['email'];
+    $db = new DbOperations;
+    $user_id = $db->getUserIdWhenRegistering($email, $password);
+    if ($user_id != 0){
+        $response_data['user_id'] = $user_id;
 
+        $response->write(json_encode($response_data));
+        return $response
+                    ->withHeader('Content-type', 'application/json')
+                    ->withStatus(200);
+    }else{
+        $response_data['user_id'] = 0;
+        $response->write(json_encode($response_data));
+        return $response
+                    ->withHeader('Content-type', 'application/json')
+                    ->withStatus(422);
+    }
+});
 $app->post("/checkpass", function(Request $request, Response $response){
     $request_data = $request->getParsedBody();
     $email = $request_data['email'];
     $password = $request_data['password'];
+
     $db = new DbOperations;
 
     $returns = $db->checkPasswordByEmail($email, $password);
@@ -374,7 +396,6 @@ $app->post("/checkpass", function(Request $request, Response $response){
                     ->withHeader('Content-type', 'application/json')
                     ->withStatus(422);
    }
-   
 });
 $app->run();
 

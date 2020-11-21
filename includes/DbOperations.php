@@ -384,7 +384,8 @@
             return $result;
         }
         public function insertIntoItem($user_id, $category_id, $item_price, $user_ip, $dt_expiration, $item_title, $item_description, 
-                                        $user_address, $zip,  $region_name, $city_name, $d_coord_lat, $d_coord_long){
+                                        $user_address, $zip,  $region_name, $city_name, $d_coord_lat, $d_coord_long, $image){
+                         
             $query = "
                 start transaction;
                 set @fk_c_currency_code := 'BDT';
@@ -438,9 +439,28 @@
                 update os3n_t_region_stats set i_num_items = i_num_items + 1 where fk_i_region_id = @region_id;
 
                 update os3n_t_user set i_items = i_items + 1 where pk_i_id = $user_id;
+
+                set @s_name := 'random';
+                set @s_extension := 'jpg';
+                set @s_content_type := 'image/jepg;
+                set @s_path := 'oc-content/uploads/'$category_id/'';
+
+                insert into os3n_t_item_resource(fk_i_item_id, s_name, s_extension, s_content_type, s_path) values(@item_primary_key, @s_name, @s_extension, @s_content_type, @s_path);
                 commit;
                 ";
+
             $result = $this->con->multi_query($query);
+            if($result){
+                $upload_path = "./oc-content/uploads/$category_id/";
+                $filename = "234.jpg";
+                if(!is_dir($upload_path)){
+                    mkdir($upload_path);
+                    move_uploaded_file($image['tmp_name'], $upload_path.$filename);
+                }else{
+                    move_uploaded_file($image['tmp_name'], $upload_path.$filename);
+                }
+                
+            }
             return $result; 
         }
         public function createNewUser($full_user_name, $user_name, $password, $email, $website, $landline, $mobile_no, $user_address, $zip, $has_company, 
@@ -524,6 +544,45 @@
             $stmt->bind_result($pk_i_id);
             $stmt->fetch();
             return $pk_i_id;
+        }
+        public function imageUpload($image, $title){
+            $upload_path = "uploads/$title.jpg";
+            $query = "inser into image(title, path) values ('$title', '$image_path');";
+            if($query){
+                $this->con->file_put_contents($upload_path, base64_decode($image));
+            }       
+        }
+
+        public function addComment($user_id, $item_id, $comment_title, $comment_body){
+            $query = "
+                start transaction;
+                set @pk_i_id := '$user_id';
+
+                select s_email, s_name into @user_email, @user_name from os3n_t_user where pk_i_id = '$user_id';
+                
+                set @fk_i_item_id := '$item_id';
+                set @dt_pub_date := now();
+                set @s_title := '$comment_title';
+                set @s_body := '$comment_body';
+                set @b_enabled := 1;
+                set @b_active := 1;
+                set @b_spam := 0;
+
+                SET FOREIGN_KEY_CHECKS=0;
+
+                insert into os3n_t_item_comment( fk_i_item_id, dt_pub_date, s_title, s_author_name, s_author_email, s_body, b_enabled, b_active, b_spam, fk_i_user_id) values
+                ( @fk_i_item_id, @dt_pub_date, @s_title, @user_name, @user_email, @s_body, @b_enabled, @b_active, @b_spam, @pk_i_id);
+                
+                update os3n_t_user set i_comments = i_comments + 1 where pk_i_id = '$user_id';
+
+                SET FOREIGN_KEY_CHECKS=1;
+                commit;
+            ";
+
+            $result = $this->con->multi_query($query);
+            $results = array();
+            $results['error'] = $result;
+            return $result; 
         }
     }
     

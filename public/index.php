@@ -240,10 +240,11 @@ $app->post("/insertitem",function(Request $request, Response $response){
     $city_name = $request_data['city_name'];
     $d_coord_lat = $request_data['d_coord_lat'];
     $d_coord_long = $request_data['d_coord_long'];
+    $image =$_FILES['imageupload'];
 
     $db = new DbOperations;
     $regions = $db->insertIntoItem($user_id, $category_id, $item_price, $user_ip, $dt_expiration, $item_title, $item_description, 
-    $user_address, $zip,  $region_name, $city_name, $d_coord_lat, $d_coord_long);
+    $user_address, $zip,  $region_name, $city_name, $d_coord_lat, $d_coord_long,  $image);
     if ($regions != false){
         $response_data['error'] = false;
         $response->write(json_encode($response_data));
@@ -396,6 +397,33 @@ $app->post("/checkpass", function(Request $request, Response $response){
                     ->withHeader('Content-type', 'application/json')
                     ->withStatus(422);
    }
+});
+
+$app->post("/addcomment", function(Request $request, Response $response){
+    $request_data = $request->getParsedBody();
+    $user_id = $request_data['user_id'];
+    $item_id = $request_data['item_id'];
+    $comment_title = $request_data['comment_title'];
+    $comment_body = $request_data['comment_body'];
+    $db = new DbOperations;
+
+    $returns = $db->addComment($user_id, $item_id, $comment_title, $comment_body);
+
+    if($returns == true){
+        $response_data['user_id'] = $user_id;
+        $response_data['error'] = false;
+        $response->write(json_encode($response_data));
+        return $response
+                    ->withHeader('Content-type', 'application/json')
+                ->withStatus(200);
+    }else{
+        $response_data['error'] = true;
+        $response_data['user_id'] ='';
+        $response->write(json_encode($response_data));
+        return $response
+                    ->withHeader('Content-type', 'application/json')
+                    ->withStatus(422);
+    }
 });
 $app->run();
 

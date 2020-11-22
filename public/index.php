@@ -398,7 +398,6 @@ $app->post("/checkpass", function(Request $request, Response $response){
                     ->withStatus(422);
    }
 });
-
 $app->post("/addcomment", function(Request $request, Response $response){
     $request_data = $request->getParsedBody();
     $user_id = $request_data['user_id'];
@@ -410,7 +409,6 @@ $app->post("/addcomment", function(Request $request, Response $response){
     $returns = $db->addComment($user_id, $item_id, $comment_title, $comment_body);
 
     if($returns == true){
-        $response_data['user_id'] = $user_id;
         $response_data['error'] = false;
         $response->write(json_encode($response_data));
         return $response
@@ -418,12 +416,100 @@ $app->post("/addcomment", function(Request $request, Response $response){
                 ->withStatus(200);
     }else{
         $response_data['error'] = true;
-        $response_data['user_id'] ='';
         $response->write(json_encode($response_data));
         return $response
                     ->withHeader('Content-type', 'application/json')
                     ->withStatus(422);
     }
 });
+$app->post("/updatecomment", function(Request $request, Response $response){
+    $request_data = $request->getParsedBody();
+    $comment_body = $request_data['comment_body'];
+    $comment_title = $request_data['comment_title'];
+    $comment_id = $request_data['comment_id'];
+
+    $db = new DbOperations;
+
+    $returns = $db->updateComment($comment_body, $comment_title, $comment_id);
+
+    if($returns == true){
+        $response_data['error'] = false;
+        $response->write(json_encode($response_data));
+        return $response
+                    ->withHeader('Content-type', 'application/json')
+                ->withStatus(200);
+    }else{
+        $response_data['error'] = true;
+        $response->write(json_encode($response_data));
+        return $response
+                    ->withHeader('Content-type', 'application/json')
+                    ->withStatus(422);
+    }
+});
+$app->post("/deletecomment", function(Request $request, Response $response){
+    $request_data = $request->getParsedBody();
+   
+    $user_id = $request_data['user_id'];
+    $comment_id = $request_data['comment_id'];
+
+    $db = new DbOperations;
+
+    $returns = $db->deleteComment($user_id, $comment_id);
+
+    if($returns == true){
+        $response_data['error'] = false;
+        $response->write(json_encode($response_data));
+        return $response
+                    ->withHeader('Content-type', 'application/json')
+                ->withStatus(200);
+    }else{
+        $response_data['error'] = true;
+        $response->write(json_encode($response_data));
+        return $response
+                    ->withHeader('Content-type', 'application/json')
+                    ->withStatus(422);
+    }
+});
+$app->post("/updateuserprofile", function(Request $request, Response $response){
+    $request_data = $request->getParsedBody();
+
+    $user_id = $request_data['user_id'];
+    $full_user_name = $request_data['full_user_name'];
+    $user_name = $request_data['user_name'];
+    $password = $request_data['password'];
+    $email = $request_data['email'];
+    $website = $request_data['website'];
+    $landline = $request_data['landline'];
+    $mobile_no = $request_data['mobile_no'];
+    $user_address = $request_data['user_address'];
+    $zip = $request_data['zip'];
+    $has_company = $request_data['has_company'];
+    $region_name = $request_data['region_name'];
+    $city_name = $request_data['city_name'];
+    $ip = $request_data['ip'];
+    $coord_lat = $request_data['coord_lat'];
+    $coord_long = $request_data['coord_long'];
+    $user_desc = $request_data['user_desc'];
+
+    $db = new DbOperations;
+
+    $regions = $db->updateUserInfo($user_id, $full_user_name, $user_name, $password, $email, $website, $landline, $mobile_no, $user_address, $zip, $has_company, 
+                                        $region_name, $city_name, $ip, $coord_lat, $coord_long, $user_desc);
+   
+    if ($regions != false){
+        $response_data['error'] = false;
+        $response->write(json_encode($response_data));
+        return $response
+                    ->withHeader('Content-type', 'application/json')
+                    ->withStatus(200);
+    }else{
+        $response_data['error'] = true;
+        $response->write(json_encode($response_data));
+        return $response
+                    ->withHeader('Content-type', 'application/json')
+                    ->withStatus(422);
+    }
+});
+
 $app->run();
 

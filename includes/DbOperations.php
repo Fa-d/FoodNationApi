@@ -200,18 +200,20 @@
             return $items;
         }
         public function getCommentbyItem($item){
-            $stmt = $this->con->prepare("select s_author_name, s_title, s_body, dt_pub_date from os3n_t_item_comment where fk_i_item_id = ?;");
+            $stmt = $this->con->prepare("select pk_i_id, s_author_name, s_title, s_body, dt_pub_date, fk_i_user_id from os3n_t_item_comment where fk_i_item_id = ?;");
             $stmt->bind_param("i", $item);
             $stmt->execute();
-            $stmt->bind_result($s_author_name, $s_title, $s_body, $dt_pub_date);          
+            $stmt->bind_result($pk_i_id, $s_author_name, $s_title, $s_body, $dt_pub_date, $fk_i_user_id);          
             $items = array();
             $item2 = array();
             while($stmt->fetch()){
                 $item = array();
+                $item['comment_id'] = $pk_i_id;
                 $item['commenter_name'] = $s_author_name;
                 $item['comment_title'] = $s_title;
                 $item['comment_body'] = $s_body;
                 $item['commented_date'] = $dt_pub_date;
+                $item['commenter_id'] = $fk_i_user_id;
                 array_push($item2, $item);
             }
             $items['comment'] = $item2;
@@ -552,7 +554,6 @@
                 $this->con->file_put_contents($upload_path, base64_decode($image));
             }       
         }
-
         public function addComment($user_id, $item_id, $comment_title, $comment_body){
             $query = "
                 start transaction;
@@ -584,5 +585,76 @@
             $results['error'] = $result;
             return $result; 
         }
+        public function updateComment($comment_body, $comment_title, $comment_id){
+            $stmt = $this->con->prepare("update os3n_t_item_comment set s_body = ? , s_title = ? where pk_i_id = ?;");
+            $stmt->bind_param("ssi", $comment_body, $comment_title, $comment_id);
+            $return = $stmt->execute();
+            // $stmt->fetch();
+            return $return;
+        }
+        public function deleteComment($user_id, $comment_id){
+            $query = "
+                Delete from os3n_t_item_comment where pk_i_id = '$comment_id';
+                update os3n_t_user set i_comments = i_comments - 1 where pk_i_id = '$user_id';
+            ";
+            $result = $this->con->multi_query($query);
+            return $result; 
+        }
+        public function updateUserInfo($user_id, $full_user_name, $user_name, $password, $email, $website, $landline, $mobile_no, $user_address, $zip, $has_company, 
+                                        $region_name, $city_name, $ip, $coord_lat, $coord_long, $user_desc){
+            $query = "
+                start transaction;
+                set @user_id := '$user_id';
+                set @s_name := '$full_user_name';
+                set @s_username := '$user_name';
+                set @s_password := '$password';
+                set @s_email := '$email';
+                set @s_website := '$website';
+                set @s_phone_land := '$landline';
+                set @s_phone_mobile := '$mobile_no';
+                set @s_address := '$user_address';
+                set @s_zip := '$zip';
+                set @b_company := '$has_company';
+                set @s_region := '$region_name';
+                set @s_city := '$city_name';
+                set @s_access_ip := '$ip';
+                set @d_coord_lat := '$coord_lat';
+                set @d_coord_long := '$coord_long';
+                set @dt_reg_date := now();
+                set @dt_access_date := now();
+                set @s_country := 'Bangladesh';
+                set @fk_c_country_code := 88;
+                set @b_enabled := 1;
+                set @b_active := 1;
+                set @s_secret := 'asdasd0';
+                set @dt_mod_date := now();
+                set @s_info := '$user_desc';
+                set @s_pass_code := 'sdfsd';
+                set @s_pass_date := now();
+                set @fk_i_city_area_id := null;
+                set @i_items := 0;
+                set @i_comments := 0;
+                
+                SELECT pk_i_id INTO @region_id FROM os3n_t_region WHERE s_name = @s_region;
+                SELECT pk_i_id INTO @city_id FROM os3n_t_city WHERE s_name = @s_city;
+                SET FOREIGN_KEY_CHECKS=0;
+                update os3n_t_user set dt_reg_date = @dt_reg_date, dt_mod_date = @dt_mod_date, s_name = @s_name , s_username = @s_username, s_password = @s_password, s_secret = @s_secret,
+                s_email =  @s_email, s_website = @s_website, s_phone_land = @s_phone_land, s_phone_mobile = @s_phone_mobile, b_enabled = @b_enabled, b_active =  @b_active,
+                s_pass_code = @s_pass_code, s_pass_date = @s_pass_date, s_pass_ip = @s_access_ip, fk_c_country_code =  @fk_c_country_code, s_country =  @s_country, 
+                s_address = @s_address, s_zip = @s_zip, fk_i_region_id = @region_id, s_region = @s_region, fk_i_city_id = @city_id, s_city =  @s_city, fk_i_city_area_id = @fk_i_city_area_id,
+                s_city_area = @s_city, d_coord_lat = @d_coord_lat, d_coord_long = @d_coord_long, b_company =  @b_company, i_items = @i_items, i_comments =  @i_comments, 
+                dt_access_date = @dt_access_date, s_access_ip = @s_access_ip where pk_i_id = '$user_id';
+                
+                set @fk_c_locale_code := 'en_US';
+                
+                update os3n_t_user_description set fk_c_locale_code = @fk_c_locale_code, s_info = @s_info where fk_i_user_id = @user_id;
+                SET FOREIGN_KEY_CHECKS=1;
+                commit;
+                
+            ";
+            $result = $this->con->multi_query($query);
+            return $result; 
+        }
     }
     
+

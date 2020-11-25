@@ -240,13 +240,14 @@ $app->post("/insertitem",function(Request $request, Response $response){
     $city_name = $request_data['city_name'];
     $d_coord_lat = $request_data['d_coord_lat'];
     $d_coord_long = $request_data['d_coord_long'];
-    $image =$_FILES['imageupload'];
 
     $db = new DbOperations;
+
     $regions = $db->insertIntoItem($user_id, $category_id, $item_price, $user_ip, $dt_expiration, $item_title, $item_description, 
-    $user_address, $zip,  $region_name, $city_name, $d_coord_lat, $d_coord_long,  $image);
-    if ($regions != false){
-        $response_data['error'] = false;
+    $user_address, $zip,  $region_name, $city_name, $d_coord_lat, $d_coord_long);
+
+    if ($regions['success'] != false){
+        $response_data = $regions;
         $response->write(json_encode($response_data));
         return $response
                     ->withHeader('Content-type', 'application/json')
@@ -471,6 +472,7 @@ $app->post("/deletecomment", function(Request $request, Response $response){
     }
 });
 $app->post("/updateuserprofile", function(Request $request, Response $response){
+
     $request_data = $request->getParsedBody();
 
     $user_id = $request_data['user_id'];
@@ -508,6 +510,55 @@ $app->post("/updateuserprofile", function(Request $request, Response $response){
         return $response
                     ->withHeader('Content-type', 'application/json')
                     ->withStatus(422);
+    }
+});
+$app->post('/uploadiamgetest', function ($request, $response, $args) {
+    $temp_parse = $request->getParsedBody();
+
+    $item_id = $temp_parse['item_id'];
+    $category_id = $temp_parse['category_id'];
+
+    $files = $request->getUploadedFiles();
+    if (empty($files['image'])) {
+        throw new Exception('Expected a newfile');
+    }
+
+    $newfile = $files['image'];
+    $for_returning1 = array();
+
+    if ($newfile->getError() === UPLOAD_ERR_OK) {
+        $filedest =dirname(__FILE__) . "\\oc-content\\uploads\\$category_id\\";
+
+        $uploadFileName =  $item_id.'.jpg';
+     
+        if(!is_dir($filedest)){
+
+            mkdir($filedest, 0777, true);
+
+            $newfile->moveTo($filedest.$uploadFileName);
+            
+            $for_returning1['error'] = false;
+
+            $response->write(json_encode($for_returning1));
+            return $response
+                        ->withHeader('Content-type', 'application/json')
+                        ->withStatus(200);
+        }else{
+            $for_returning1['error'] = false;
+
+            $newfile->moveTo($filedest.$uploadFileName);
+
+            $response->write(json_encode($for_returning1));
+            return $response
+                        ->withHeader('Content-type', 'application/json')
+                        ->withStatus(200);
+        }
+    }else{
+        $for_returning1['error'] = true;
+        $response->write(json_encode($for_returning1));
+            return $response
+                        ->withHeader('Content-type', 'application/json')
+                        ->withStatus(422);
     }
 });
 

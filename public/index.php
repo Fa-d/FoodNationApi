@@ -17,7 +17,7 @@ $app->get('/helloother/{name}', function (Request $request, Response $response, 
     $response->getBody()->write($name);
     return $response;
 });
-$app->get('/getcatagories', function(Request $request, Response $response){
+$app->get('/getcatagories', function (Request $request, Response $response) {
     $db = new DbOperations;
     $users = $db->getItemsByCategorySorted();
     $response_data = array();
@@ -28,55 +28,51 @@ $app->get('/getcatagories', function(Request $request, Response $response){
                     ->withHeader('Content-type', 'application/json')
                     ->withStatus(200);
 });
-$app->post('/itemsfromcategories',function(Request $request, Response $response){
+$app->post('/itemsfromcategories', function (Request $request, Response $response) {
     $request_data = $request->getParsedBody();
     $category = $request_data['category'];
     $db = new DbOperations;
     $response_data = array();
     $items_b = $db->getItemsFromCategories($category);
-    if($items_b != null){
+    if ($items_b != null) {
         $response_data['error'] = false;
         $response_data['items'] = $items_b;
         $response->write(json_encode($response_data));
         return $response
                     ->withHeader('Content-type', 'application/json')
                     ->withStatus(200);
-        
-    }else{
+    } else {
         $response_data['error'] = true;
         $response->write(json_encode($response_data));
         return $response
                     ->withHeader('Content-type', 'application/json')
                     ->withStatus(422);
     }
-    
 });
-$app->post('/getuserinformation', function(Request $request, Response $response){
+$app->post('/getuserinformation', function (Request $request, Response $response) {
     $request_data = $request->getParsedBody();
     $id = $request_data['id'];
     $db = new DbOperations;
     $response_data = array();
     $items_a = $db->getItemDetailsbyUser($id);
     $items_b = $db->getUserInformation($id);
-    $item = array_merge($items_a,$items_b);
-    if($item != null){
+    $item = array_merge($items_a, $items_b);
+    if ($item != null) {
         $response_data['error'] = false;
         $response_data['items'] = $item;
         $response->write(json_encode($response_data));
         return $response
                     ->withHeader('Content-type', 'application/json')
                     ->withStatus(200);
-        
-    }else{
+    } else {
         $response_data['error'] = true;
         $response->write(json_encode($response_data));
         return $response
                     ->withHeader('Content-type', 'application/json')
                     ->withStatus(422);
     }
-    
 });
-$app->post('/getitemdetailsdata', function(Request $request, Response $response){
+$app->post('/getitemdetailsdata', function (Request $request, Response $response) {
     $request_data = $request->getParsedBody();
     $item = $request_data['item'];
     $db = new DbOperations;
@@ -87,48 +83,44 @@ $app->post('/getitemdetailsdata', function(Request $request, Response $response)
     $item_d = $db->getDatePriceName($item);
     $item_e = $db->getUsersNameIDPhone($item);
     $item_f = $db->getCommentbyItem($item);
-    $item = array_merge($item_a,$item_b, $item_c, $item_d, $item_e, $item_f);
-    if($item != null){
+    $item = array_merge($item_a, $item_b, $item_c, $item_d, $item_e, $item_f);
+    if ($item != null) {
         $response_data['error'] = false;
         $response_data['items'] = $item;
         $response->write(json_encode($response_data));
         return $response
                     ->withHeader('Content-type', 'application/json')
                     ->withStatus(200);
-        
-    }else{
+    } else {
         $response_data['error'] = true;
         $response->write(json_encode($response_data));
         return $response
                     ->withHeader('Content-type', 'application/json')
                     ->withStatus(422);
     }
-    
 });
-$app->post('/getcategoryname', function(Request $request, Response $response){
+$app->post('/getcategoryname', function (Request $request, Response $response) {
     $request_data = $request->getParsedBody();
     $item = $request_data['item'];
     $db = new DbOperations;
     $response_data  = array();
     $item_a = $db->getCategoryName($item);
-    if($item_a != null){
+    if ($item_a != null) {
         $response_data['error'] = false;
         $response_data['items'] = $item_a;
         $response->write(json_encode($response_data));
         return $response
                     ->withHeader('Content-type', 'application/json')
                     ->withStatus(200);
-        
-    }else{
+    } else {
         $response_data['error'] = true;
         $response->write(json_encode($response_data));
         return $response
                     ->withHeader('Content-type', 'application/json')
                     ->withStatus(422);
-        }
+    }
 });
-$app->post("/getimage", function(Request $request, Response $response){
-
+$app->post("/getimage", function (Request $request, Response $response) {
     $request_data = $request->getParsedBody();
     $id = $request_data['id'];
 
@@ -136,14 +128,14 @@ $app->post("/getimage", function(Request $request, Response $response){
 
     $images = $db->getImage($id);
 
-    if ($images != null){
+    if ($images != null) {
         $response_data['error'] = false;
         $response_data['images'] = $images;
         $response->write(json_encode($response_data));
         return $response
                     ->withHeader('Content-type', 'application/json')
                     ->withStatus(200);
-    }else{
+    } else {
         $response_data['error'] = true;
         $response->write(json_encode($response_data));
         return $response
@@ -151,7 +143,7 @@ $app->post("/getimage", function(Request $request, Response $response){
                     ->withStatus(422);
     }
 });
-$app->get("/getitembylocation", function(Request $request, Response $response){
+$app->get("/getitembylocation", function (Request $request, Response $response) {
     $db = new DbOperations;
     $regional_info = $db->getRegionNameAndItemCount();
     $city_info = $db->getCityNameAndItemCount();
@@ -162,23 +154,22 @@ $app->get("/getitembylocation", function(Request $request, Response $response){
     return $response
                 ->withHeader('Content-type', 'application/json')
                 ->withStatus(200);
-
 });
-$app->post("/getregionalitemdescription", function(Request $request, Response $response){
+$app->post("/getregionalitemdescription", function (Request $request, Response $response) {
     $request_data = $request->getParsedBody();
     $regionid = $request_data['regionid'];
     $type = $request_data['type'];
 
     $db = new DbOperations;
     $items = $db->getItemDescriptionByRegion($regionid, $type);
-    if ($items != null){
+    if ($items != null) {
         $response_data['error'] = false;
         $response_data['items'] = $items;
         $response->write(json_encode($response_data));
         return $response
                     ->withHeader('Content-type', 'application/json')
                     ->withStatus(200);
-    }else{
+    } else {
         $response_data['error'] = true;
         $response->write(json_encode($response_data));
         return $response
@@ -186,17 +177,17 @@ $app->post("/getregionalitemdescription", function(Request $request, Response $r
                     ->withStatus(422);
     }
 });
-$app->get("/getregionsname",function(Request $request, Response $response){
+$app->get("/getregionsname", function (Request $request, Response $response) {
     $db = new DbOperations;
     $regions = $db->getAllRegions();
-    if ($regions != null){
+    if ($regions != null) {
         $response_data['error'] = false;
         $response_data['regions'] = $regions;
         $response->write(json_encode($response_data));
         return $response
                     ->withHeader('Content-type', 'application/json')
                     ->withStatus(200);
-    }else{
+    } else {
         $response_data['error'] = true;
         $response->write(json_encode($response_data));
         return $response
@@ -204,19 +195,19 @@ $app->get("/getregionsname",function(Request $request, Response $response){
                     ->withStatus(422);
     }
 });
-$app->post("/getcitybyregion", function(Request $request, Response $response){
+$app->post("/getcitybyregion", function (Request $request, Response $response) {
     $request_data = $request->getParsedBody();
     $region_id = $request_data['region_id'];
     $db = new DbOperations;
     $cities = $db->getCitiesNameByRegion($region_id);
-    if ($cities != null){
+    if ($cities != null) {
         $response_data['error'] = false;
         $response_data['cities'] = $cities;
         $response->write(json_encode($response_data));
         return $response
                     ->withHeader('Content-type', 'application/json')
                     ->withStatus(200);
-    }else{
+    } else {
         $response_data['error'] = true;
         $response->write(json_encode($response_data));
         return $response
@@ -224,7 +215,7 @@ $app->post("/getcitybyregion", function(Request $request, Response $response){
                     ->withStatus(422);
     }
 });
-$app->post("/insertitem",function(Request $request, Response $response){
+$app->post("/insertitem", function (Request $request, Response $response) {
     $request_data = $request->getParsedBody();
 
     $user_id = $request_data['user_id'];
@@ -243,16 +234,29 @@ $app->post("/insertitem",function(Request $request, Response $response){
 
     $db = new DbOperations;
 
-    $regions = $db->insertIntoItem($user_id, $category_id, $item_price, $user_ip, $dt_expiration, $item_title, $item_description, 
-    $user_address, $zip,  $region_name, $city_name, $d_coord_lat, $d_coord_long);
+    $regions = $db->insertIntoItem(
+        $user_id,
+        $category_id,
+        $item_price,
+        $user_ip,
+        $dt_expiration,
+        $item_title,
+        $item_description,
+        $user_address,
+        $zip,
+        $region_name,
+        $city_name,
+        $d_coord_lat,
+        $d_coord_long
+    );
 
-    if ($regions['success'] != false){
+    if ($regions['success'] != false) {
         $response_data = $regions;
         $response->write(json_encode($response_data));
         return $response
                     ->withHeader('Content-type', 'application/json')
                     ->withStatus(200);
-    }else{
+    } else {
         $response_data['error'] = true;
         $response->write(json_encode($response_data));
         return $response
@@ -260,32 +264,44 @@ $app->post("/insertitem",function(Request $request, Response $response){
                     ->withStatus(422);
     }
 });
-$app->post("/updateitem",function(Request $request, Response $response){
+$app->post("/updateitem", function (Request $request, Response $response) {
     $request_data = $request->getParsedBody();
 
     $item_p_key = $request_data['item_p_key'];
-    $user_id = $request_data['user_id'];
     $category_id = $request_data['category_id'];
     $item_price = $request_data['item_price'];
     $item_title = $request_data['item_title'];
     $item_description = $request_data['item_description'];
     $user_address = $request_data['user_address'];
     $zip = $request_data['zip'];
+    $ip = $request_data['ip'];
     $region_name = $request_data['region_name'];
     $city_name = $request_data['city_name'];
     $d_coord_lat = $request_data['d_coord_lat'];
     $d_coord_long = $request_data['d_coord_long'];
     
     $db = new DbOperations;
-    $regions = $db->updateItem($item_p_key, $user_id, $category_id, $item_price, $item_title, $item_description, 
-                                $user_address, $zip,  $region_name, $city_name, $d_coord_lat, $d_coord_long);
-    if ($regions != false){
+    $regions = $db->updateItem(
+        $item_p_key,
+        $category_id,
+        $item_price,
+        $item_title,
+        $item_description,
+        $user_address,
+        $zip,
+        $ip,
+        $region_name,
+        $city_name,
+        $d_coord_lat,
+        $d_coord_long
+    );
+    if ($regions != false) {
         $response_data['error'] = false;
         $response->write(json_encode($response_data));
         return $response
                     ->withHeader('Content-type', 'application/json')
                     ->withStatus(200);
-    }else{
+    } else {
         $response_data['error'] = true;
         $response->write(json_encode($response_data));
         return $response
@@ -293,7 +309,7 @@ $app->post("/updateitem",function(Request $request, Response $response){
                     ->withStatus(422);
     }
 });
-$app->post("/deleteitem",function(Request $request, Response $response){
+$app->post("/deleteitem", function (Request $request, Response $response) {
     $request_data = $request->getParsedBody();
     $item_p_key = $request_data['item_p_key'];
     $region_name = $request_data['region_name'];
@@ -301,13 +317,13 @@ $app->post("/deleteitem",function(Request $request, Response $response){
 
     $db = new DbOperations;
     $regions = $db->deleteItem($item_p_key, $region_name, $city_name);
-    if ($regions != false){
+    if ($regions != false) {
         $response_data['error'] = false;
         $response->write(json_encode($response_data));
         return $response
                     ->withHeader('Content-type', 'application/json')
                     ->withStatus(200);
-    }else{
+    } else {
         $response_data['error'] = true;
         $response->write(json_encode($response_data));
         return $response
@@ -315,7 +331,7 @@ $app->post("/deleteitem",function(Request $request, Response $response){
                     ->withStatus(422);
     }
 });
-$app->post("/registeruser", function(Request $request, Response $response){
+$app->post("/registeruser", function (Request $request, Response $response) {
     $request_data = $request->getParsedBody();
 
     $full_user_name = $request_data['full_user_name'];
@@ -336,16 +352,32 @@ $app->post("/registeruser", function(Request $request, Response $response){
     $user_desc = $request_data['user_desc'];
 
     $db = new DbOperations;
-    $regions = $db->createNewUser($full_user_name, $user_name, $password, $email, $website, $landline, $mobile_no, $user_address,
-                                    $zip,$has_company, $region_name, $city_name, $ip, $coord_lat, $coord_long, $user_desc);
+    $regions = $db->createNewUser(
+        $full_user_name,
+        $user_name,
+        $password,
+        $email,
+        $website,
+        $landline,
+        $mobile_no,
+        $user_address,
+        $zip,
+        $has_company,
+        $region_name,
+        $city_name,
+        $ip,
+        $coord_lat,
+        $coord_long,
+        $user_desc
+    );
    
-    if ($regions != false){
+    if ($regions != false) {
         $response_data['error'] = false;
         $response->write(json_encode($response_data));
         return $response
                     ->withHeader('Content-type', 'application/json')
                     ->withStatus(200);
-    }else{
+    } else {
         $response_data['error'] = true;
         $response->write(json_encode($response_data));
         return $response
@@ -353,20 +385,20 @@ $app->post("/registeruser", function(Request $request, Response $response){
                     ->withStatus(422);
     }
 });
-$app->post("/useridatregistration", function(Request $request, Response $response){
+$app->post("/useridatregistration", function (Request $request, Response $response) {
     $request_data = $request->getParsedBody();
     $password = $request_data['password'];
     $email = $request_data['email'];
     $db = new DbOperations;
     $user_id = $db->getUserIdWhenRegistering($email, $password);
-    if ($user_id != 0){
+    if ($user_id != 0) {
         $response_data['user_id'] = $user_id;
 
         $response->write(json_encode($response_data));
         return $response
                     ->withHeader('Content-type', 'application/json')
                     ->withStatus(200);
-    }else{
+    } else {
         $response_data['user_id'] = 0;
         $response->write(json_encode($response_data));
         return $response
@@ -374,7 +406,7 @@ $app->post("/useridatregistration", function(Request $request, Response $respons
                     ->withStatus(422);
     }
 });
-$app->post("/checkpass", function(Request $request, Response $response){
+$app->post("/checkpass", function (Request $request, Response $response) {
     $request_data = $request->getParsedBody();
     $email = $request_data['email'];
     $password = $request_data['password'];
@@ -382,24 +414,27 @@ $app->post("/checkpass", function(Request $request, Response $response){
     $db = new DbOperations;
 
     $returns = $db->checkPasswordByEmail($email, $password);
-   if($returns['error'] == false){
+    if ($returns['error'] == false) {
         $response_data['user_id'] = $returns['user_id'];
+        $response_data['city'] = $returns['city'];
+        $response_data['region'] = $returns['region'] ;
         $response_data['error'] = false;
         $response->write(json_encode($response_data));
         return $response
                     ->withHeader('Content-type', 'application/json')
                 ->withStatus(200);
-
-   }else{
+    } else {
         $response_data['error'] = true;
         $response_data['user_id'] ='';
+        $response_data['city'] = '';
+        $response_data['region'] = '';
         $response->write(json_encode($response_data));
         return $response
                     ->withHeader('Content-type', 'application/json')
                     ->withStatus(422);
-   }
+    }
 });
-$app->post("/addcomment", function(Request $request, Response $response){
+$app->post("/addcomment", function (Request $request, Response $response) {
     $request_data = $request->getParsedBody();
     $user_id = $request_data['user_id'];
     $item_id = $request_data['item_id'];
@@ -409,13 +444,13 @@ $app->post("/addcomment", function(Request $request, Response $response){
 
     $returns = $db->addComment($user_id, $item_id, $comment_title, $comment_body);
 
-    if($returns == true){
+    if ($returns == true) {
         $response_data['error'] = false;
         $response->write(json_encode($response_data));
         return $response
                     ->withHeader('Content-type', 'application/json')
                 ->withStatus(200);
-    }else{
+    } else {
         $response_data['error'] = true;
         $response->write(json_encode($response_data));
         return $response
@@ -423,7 +458,7 @@ $app->post("/addcomment", function(Request $request, Response $response){
                     ->withStatus(422);
     }
 });
-$app->post("/updatecomment", function(Request $request, Response $response){
+$app->post("/updatecomment", function (Request $request, Response $response) {
     $request_data = $request->getParsedBody();
     $comment_body = $request_data['comment_body'];
     $comment_title = $request_data['comment_title'];
@@ -433,13 +468,13 @@ $app->post("/updatecomment", function(Request $request, Response $response){
 
     $returns = $db->updateComment($comment_body, $comment_title, $comment_id);
 
-    if($returns == true){
+    if ($returns == true) {
         $response_data['error'] = false;
         $response->write(json_encode($response_data));
         return $response
                     ->withHeader('Content-type', 'application/json')
                 ->withStatus(200);
-    }else{
+    } else {
         $response_data['error'] = true;
         $response->write(json_encode($response_data));
         return $response
@@ -447,7 +482,7 @@ $app->post("/updatecomment", function(Request $request, Response $response){
                     ->withStatus(422);
     }
 });
-$app->post("/deletecomment", function(Request $request, Response $response){
+$app->post("/deletecomment", function (Request $request, Response $response) {
     $request_data = $request->getParsedBody();
    
     $user_id = $request_data['user_id'];
@@ -457,13 +492,13 @@ $app->post("/deletecomment", function(Request $request, Response $response){
 
     $returns = $db->deleteComment($user_id, $comment_id);
 
-    if($returns == true){
+    if ($returns == true) {
         $response_data['error'] = false;
         $response->write(json_encode($response_data));
         return $response
                     ->withHeader('Content-type', 'application/json')
                 ->withStatus(200);
-    }else{
+    } else {
         $response_data['error'] = true;
         $response->write(json_encode($response_data));
         return $response
@@ -471,8 +506,7 @@ $app->post("/deletecomment", function(Request $request, Response $response){
                     ->withStatus(422);
     }
 });
-$app->post("/updateuserprofile", function(Request $request, Response $response){
-
+$app->post("/updateuserprofile", function (Request $request, Response $response) {
     $request_data = $request->getParsedBody();
 
     $user_id = $request_data['user_id'];
@@ -495,16 +529,33 @@ $app->post("/updateuserprofile", function(Request $request, Response $response){
 
     $db = new DbOperations;
 
-    $regions = $db->updateUserInfo($user_id, $full_user_name, $user_name, $password, $email, $website, $landline, $mobile_no, $user_address, $zip, $has_company, 
-                                        $region_name, $city_name, $ip, $coord_lat, $coord_long, $user_desc);
+    $regions = $db->updateUserInfo(
+        $user_id,
+        $full_user_name,
+        $user_name,
+        $password,
+        $email,
+        $website,
+        $landline,
+        $mobile_no,
+        $user_address,
+        $zip,
+        $has_company,
+        $region_name,
+        $city_name,
+        $ip,
+        $coord_lat,
+        $coord_long,
+        $user_desc
+    );
    
-    if ($regions != false){
+    if ($regions != false) {
         $response_data['error'] = false;
         $response->write(json_encode($response_data));
         return $response
                     ->withHeader('Content-type', 'application/json')
                     ->withStatus(200);
-    }else{
+    } else {
         $response_data['error'] = true;
         $response->write(json_encode($response_data));
         return $response
@@ -531,8 +582,7 @@ $app->post('/uploadiamgetest', function ($request, $response, $args) {
 
         $uploadFileName =  $item_id.'.jpg';
      
-        if(!is_dir($filedest)){
-
+        if (!is_dir($filedest)) {
             mkdir($filedest, 0777, true);
 
             $newfile->moveTo($filedest.$uploadFileName);
@@ -543,7 +593,7 @@ $app->post('/uploadiamgetest', function ($request, $response, $args) {
             return $response
                         ->withHeader('Content-type', 'application/json')
                         ->withStatus(200);
-        }else{
+        } else {
             $for_returning1['error'] = false;
 
             $newfile->moveTo($filedest.$uploadFileName);
@@ -553,14 +603,13 @@ $app->post('/uploadiamgetest', function ($request, $response, $args) {
                         ->withHeader('Content-type', 'application/json')
                         ->withStatus(200);
         }
-    }else{
+    } else {
         $for_returning1['error'] = true;
         $response->write(json_encode($for_returning1));
-            return $response
+        return $response
                         ->withHeader('Content-type', 'application/json')
                         ->withStatus(422);
     }
 });
 
 $app->run();
-

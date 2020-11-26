@@ -1,12 +1,15 @@
 <?php
-    class DbOperations{
+    class DbOperations
+    {
         private $con;
-        function __construct(){
+        public function __construct()
+        {
             require_once dirname(__FILE__).'/DbConnect.php';
             $db = new DbConnect;
             $this->con = $db->connect();
         }
-        public function getAllCatagoriesShortened(){
+        public function getAllCatagoriesShortened()
+        {
             $stmt = $this->con->prepare("select pk_i_id,  s_name, num_items, s_slug from
             (select count(fk_i_parent_id) as num_items, pk_i_id ,fk_i_parent_id 
                 from os3n_t_category 
@@ -18,7 +21,7 @@
             $stmt->execute();
             $stmt->bind_result($pk_i_id, $s_name, $num_items, $s_slug);
             $catagories = array();
-            while($stmt->fetch()){
+            while ($stmt->fetch()) {
                 $catagorie  = array();
                 $catagorie['pk_i_id'] = $pk_i_id;
                 $catagorie['s_name'] = $s_name;
@@ -27,15 +30,16 @@
                 array_push($catagories, $catagorie);
             }
             return $catagories;
-        }  
-        public function getItemsByCategorySorted(){
+        }
+        public function getItemsByCategorySorted()
+        {
             $stmt = $this->con->prepare("select os3n_t_item.fk_i_category_id as category_id, s_name as category_name, count(pk_i_id) as category_count from os3n_t_item 
             inner join os3n_t_category_description on os3n_t_item.fk_i_category_id = os3n_t_category_description.fk_i_category_id
             group by os3n_t_item.fk_i_category_id having count(os3n_t_item.pk_i_id)  > 1  order by count(os3n_t_item.pk_i_id) desc ;");
             $stmt->execute();
             $stmt->bind_result($category_id, $category_name, $category_count);
             $catagories = array();
-            while($stmt->fetch()){
+            while ($stmt->fetch()) {
                 $catagorie  = array();
                 $catagorie['category_id'] = $category_id;
                 $catagorie['category_name'] = $category_name;
@@ -44,14 +48,15 @@
             }
             return $catagories;
         }
-        public function getImage($id){
+        public function getImage($id)
+        {
             $stmt  = $this->con->prepare("select pk_i_id, s_path, s_extension from os3n_t_item_resource where os3n_t_item_resource.pk_i_id = (select fk_i_category_id from os3n_t_item where pk_i_id = ?);");
             $stmt->bind_param("i", $id);
             $stmt->execute();
             $stmt->bind_result($pk_i_id, $s_path, $s_extension);
             $item2 = array();
             $items = array();
-            while($stmt->fetch()){
+            while ($stmt->fetch()) {
                 $item = array();
                 $item['s_path'] = $s_path;
                 $item['s_extension'] = $s_extension;
@@ -62,7 +67,8 @@
             
             return $items;
         }
-        public function getItemsFromCategories($categoryNo){
+        public function getItemsFromCategories($categoryNo)
+        {
             $stmt = $this->con->prepare("select os3n_t_item.i_price as price,s_contact_name as user_name, os3n_t_item.pk_i_id as item_id, os3n_t_item_resource.pk_i_id as images_id, s_path as url_path,
             s_extension as image_ext, s_title as item_title, os3n_t_category_description.s_name as item_category, s_city as city, s_region as region from os3n_t_item 
                         join os3n_t_item_resource on os3n_t_item.pk_i_id = os3n_t_item_resource.fk_i_item_id
@@ -74,7 +80,7 @@
             $stmt->execute();
             $stmt->bind_result($price, $user_name, $item_id, $images_id, $url_path, $image_ext, $item_title, $item_category, $city, $region);
             $items = array();
-            while($stmt->fetch()){
+            while ($stmt->fetch()) {
                 $item = array();
                 $item['price'] = $price;
                 $item['user_name'] = $user_name;
@@ -91,7 +97,8 @@
             }
             return $items;
         }
-        public function getUserInformation($id){
+        public function getUserInformation($id)
+        {
             $stmt = $this->con->prepare("select s_name ,s_email, s_website, s_phone_mobile, s_region, s_city from os3n_t_user where pk_i_id = ?;");
             $stmt->bind_param("i", $id);
             $stmt->execute();
@@ -106,20 +113,21 @@
             $items['user_city'] = $s_city;
 
             return $items;
-
         }
-        public function getItemDetailsbyUser($id){
+        public function getItemDetailsbyUser($id)
+        {
             $stmt = $this->con->prepare("select os3n_t_item.pk_i_id, i_price, s_title, os3n_t_category_description.s_name, s_city, s_region, s_path, s_extension  from os3n_t_item
             join os3n_t_item_resource on os3n_t_item.pk_i_id = os3n_t_item_resource.pk_i_id
             join os3n_t_item_description on os3n_t_item.pk_i_id = os3n_t_item_description.fk_i_item_id
             join os3n_t_item_location on os3n_t_item.pk_i_id = os3n_t_item_location.fk_i_item_id 
             join os3n_t_category_description on os3n_t_item.fk_i_category_id = os3n_t_category_description.fk_i_category_id
             where fk_i_user_id = ?;");
+
             $stmt->bind_param("i", $id);
             $stmt->execute();
             $stmt->bind_result($pk_i_id, $i_price, $s_title, $s_name, $s_city, $s_region, $s_path, $s_extension);
             $items = array();
-            while($stmt->fetch()){
+            while ($stmt->fetch()) {
                 $item = array();
                 $item['item_id'] = $pk_i_id;
                 $item['item_price'] = $i_price;
@@ -134,7 +142,8 @@
             $item2['users_post_items'] = $items;
             return $item2;
         }
-        public function getItemNameDescription($item ){
+        public function getItemNameDescription($item)
+        {
             $stmt1 = $this->con->prepare("select s_title, s_description from os3n_t_item_description join os3n_t_item on os3n_t_item.pk_i_id = os3n_t_item_description.fk_i_item_id where os3n_t_item.pk_i_id = ?;");
             $items = array();
 
@@ -148,7 +157,8 @@
             
             return $items;
         }
-        public function getItemLocation($item ){
+        public function getItemLocation($item)
+        {
             $stmt2 = $this->con->prepare("select s_city, s_region, s_address from os3n_t_item_location where fk_i_item_id = ?;");
             $items = array();
 
@@ -163,7 +173,8 @@
             
             return $items;
         }
-        public function getCategoryName($item){
+        public function getCategoryName($item)
+        {
             $stmt = $this->con->prepare("select s_title from os3n_t_item_description where fk_i_item_id = ? ;");
             $stmt->bind_param("i", $item);
             $stmt->execute();
@@ -173,7 +184,8 @@
             $items['s_title_category'] = $s_title;
             return $items;
         }
-        public function getDatePriceName($item){
+        public function getDatePriceName($item)
+        {
             $stmt = $this->con->prepare("select s_contact_name, dt_pub_date, i_price from os3n_t_item where pk_i_id = ?;");
             $stmt->bind_param("i", $item);
             $stmt->execute();
@@ -185,7 +197,8 @@
             $items['s_contact_name'] = $s_contact_name;
             return $items;
         }
-        public function getUsersNameIDPhone($item){
+        public function getUsersNameIDPhone($item)
+        {
             $stmt = $this->con->prepare("select pk_i_id, s_name, i_items, dt_reg_date, s_phone_mobile  from os3n_t_user where pk_i_id = (select fk_i_user_id from os3n_t_item where pk_i_id = ?);");
             $stmt->bind_param("i", $item);
             $stmt->execute();
@@ -199,14 +212,15 @@
             $items['users_mobile_number'] = $s_phone_mobile;
             return $items;
         }
-        public function getCommentbyItem($item){
+        public function getCommentbyItem($item)
+        {
             $stmt = $this->con->prepare("select pk_i_id, s_author_name, s_title, s_body, dt_pub_date, fk_i_user_id from os3n_t_item_comment where fk_i_item_id = ?;");
             $stmt->bind_param("i", $item);
             $stmt->execute();
-            $stmt->bind_result($pk_i_id, $s_author_name, $s_title, $s_body, $dt_pub_date, $fk_i_user_id);          
+            $stmt->bind_result($pk_i_id, $s_author_name, $s_title, $s_body, $dt_pub_date, $fk_i_user_id);
             $items = array();
             $item2 = array();
-            while($stmt->fetch()){
+            while ($stmt->fetch()) {
                 $item = array();
                 $item['comment_id'] = $pk_i_id;
                 $item['commenter_name'] = $s_author_name;
@@ -219,8 +233,9 @@
             $items['comment'] = $item2;
             return $items;
         }
-        public function getItemDescriptionByRegion($regionId, $type){
-            if($type == 1){
+        public function getItemDescriptionByRegion($regionId, $type)
+        {
+            if ($type == 1) {
                 $stmt = $this->con->prepare("select 
                                                 os3n_t_item.i_price as price,s_contact_name as user_name, os3n_t_item.pk_i_id as item_id, os3n_t_item_resource.pk_i_id as images_id, s_path as url_path,
                                                 s_extension as image_ext, s_title as item_title, os3n_t_category_description.s_name as item_category, s_city as city, s_region as region 
@@ -230,23 +245,21 @@
                                                 join os3n_t_item_resource on os3n_t_item.pk_i_id = os3n_t_item_resource.fk_i_item_id
                                                 join os3n_t_category_description on os3n_t_item.fk_i_category_id = os3n_t_category_description.fk_i_category_id
                                             where os3n_t_item_location.fk_i_region_id = ?;");
-                                            $stmt->bind_param("i", $regionId);
-            }
-            elseif ($type == 2) {
+                $stmt->bind_param("i", $regionId);
+            } elseif ($type == 2) {
                 $stmt = $this->con->prepare("select 
-                os3n_t_item.i_price as price,s_contact_name as user_name, os3n_t_item.pk_i_id as item_id, os3n_t_item_resource.pk_i_id as images_id, s_path as url_path,
-                s_extension as image_ext, s_title as item_title, os3n_t_category_description.s_name as item_category, s_city as city, s_region as region 
-            from os3n_t_item
-                join os3n_t_item_description on os3n_t_item.pk_i_id = os3n_t_item_description.fk_i_item_id
-                join os3n_t_item_location on os3n_t_item.pk_i_id = os3n_t_item_location.fk_i_item_id
-                join os3n_t_item_resource on os3n_t_item.pk_i_id = os3n_t_item_resource.fk_i_item_id
-                join os3n_t_category_description on os3n_t_item.fk_i_category_id = os3n_t_category_description.fk_i_category_id
-             where os3n_t_item_location.fk_i_city_id = ?;");
-             $stmt->bind_param("i", $regionId);
-            }
-            else if($type == 3){
-            $stmt = $this->con->prepare("select os3n_t_item.i_price as price,s_contact_name as user_name, os3n_t_item.pk_i_id as item_id, os3n_t_item_resource.pk_i_id as images_id, s_path as url_path,
-            s_extension as image_ext, s_title as item_title, os3n_t_category_description.s_name as item_category, s_city as city, s_region as region from os3n_t_item 
+                        os3n_t_item.i_price as price,s_contact_name as user_name, os3n_t_item.pk_i_id as item_id, os3n_t_item_resource.pk_i_id as images_id, s_path as url_path,
+                        s_extension as image_ext, s_title as item_title, os3n_t_category_description.s_name as item_category, s_city as city, s_region as region 
+                    from os3n_t_item
+                        join os3n_t_item_description on os3n_t_item.pk_i_id = os3n_t_item_description.fk_i_item_id
+                        join os3n_t_item_location on os3n_t_item.pk_i_id = os3n_t_item_location.fk_i_item_id
+                        join os3n_t_item_resource on os3n_t_item.pk_i_id = os3n_t_item_resource.fk_i_item_id
+                        join os3n_t_category_description on os3n_t_item.fk_i_category_id = os3n_t_category_description.fk_i_category_id
+                    where os3n_t_item_location.fk_i_city_id = ?;");
+                $stmt->bind_param("i", $regionId);
+            } elseif ($type == 3) {
+                $stmt = $this->con->prepare("select os3n_t_item.i_price as price,s_contact_name as user_name, os3n_t_item.pk_i_id as item_id, os3n_t_item_resource.pk_i_id as images_id, s_path as url_path,
+                        s_extension as image_ext, s_title as item_title, os3n_t_category_description.s_name as item_category, s_city as city, s_region as region from os3n_t_item 
                         join os3n_t_item_resource on os3n_t_item.pk_i_id = os3n_t_item_resource.fk_i_item_id
                         join os3n_t_item_description on os3n_t_item.pk_i_id = os3n_t_item_description.fk_i_item_id
                         join os3n_t_item_location on os3n_t_item.pk_i_id = os3n_t_item_location.fk_i_item_id
@@ -257,7 +270,7 @@
             $stmt->execute();
             $stmt->bind_result($price, $user_name, $item_id, $images_id, $url_path, $image_ext, $item_title, $item_category, $city, $region);
             $items = array();
-            while($stmt->fetch()){
+            while ($stmt->fetch()) {
                 $item = array();
                 $item['price'] = $price;
                 $item['user_name'] = $user_name;
@@ -274,13 +287,14 @@
             }
             return $items;
         }
-        public function getRegionNameAndItemCount(){
+        public function getRegionNameAndItemCount()
+        {
             $stmt = $this->con->prepare("select fk_i_region_id, s_region, COUNT(fk_i_item_id) as count_region  from os3n_t_item_location
             where fk_i_region_id is not null  group by s_region  ORDER BY COUNT(fk_i_item_id) DESC ;");
             $stmt->execute();
             $stmt->bind_result($region_id, $region_name, $item_count);
             $item2 = array();
-            while($stmt->fetch()){
+            while ($stmt->fetch()) {
                 $item = array();
                 $item['region_id'] = $region_id;
                 $item['region_name'] = $region_name;
@@ -289,13 +303,14 @@
             }
             return $item2;
         }
-        public function getCityNameAndItemCount(){
+        public function getCityNameAndItemCount()
+        {
             $stmt = $this->con->prepare("select fk_i_city_id, s_city, COUNT(fk_i_item_id) as count_city from os3n_t_item_location 
             where fk_i_city_id is not null group by s_city ORDER BY COUNT(fk_i_item_id) DESC;");
             $stmt->execute();
             $stmt->bind_result($city_id, $city_name, $item_count);
             $item2 = array();
-            while($stmt->fetch()){
+            while ($stmt->fetch()) {
                 $item = array();
                 $item['city_id'] = $city_id;
                 $item['city_name'] = $city_name;
@@ -304,12 +319,13 @@
             }
             return $item2;
         }
-        public function getAllRegions(){
+        public function getAllRegions()
+        {
             $stmt = $this->con->prepare("select s_name, pk_i_id from os3n_t_region;");
             $stmt->execute();
             $stmt->bind_result($region_name, $region_id);
             $regions = array();
-            while($stmt->fetch()){
+            while ($stmt->fetch()) {
                 $region = array();
                 $region['region_name'] = $region_name;
                 $region['region_id'] = $region_id;
@@ -317,50 +333,27 @@
             }
             return $regions;
         }
-        public function getCitiesNameByRegion($region_id){
+        public function getCitiesNameByRegion($region_id)
+        {
             $stmt = $this->con->prepare("select pk_i_id, s_name from os3n_t_city where fk_i_region_id = ?;");
             $stmt->bind_param("i", $region_id);
             $stmt->execute();
             $stmt->bind_result($city_id, $city_name);
             $cities = array();
-            while($stmt->fetch()){
+            while ($stmt->fetch()) {
                 $city = array();
                 $city['city_id'] = $city_id;
                 $city['city_name'] = $city_name;
                 array_push($cities, $city);
             }
-            return $cities;    
+            return $cities;
         }
-        public function updateItem($item_p_key, $user_id, $category_id, $item_price, $item_title, $item_description, 
-                                    $user_address, $zip,  $region_name, $city_name, $d_coord_lat, $d_coord_long){
+      
+        public function deleteItem($item_p_key, $region_name, $city_name)
+        {
             $query = "
                 start transaction;
                 SET FOREIGN_KEY_CHECKS=0;
-                update os3n_t_item set fk_i_category_id = '$category_id' , dt_mod_date = now(), i_price = '$item_price', dt_expiration = now() where pk_i_id = '$item_p_key';
-
-                update os3n_t_item_description set s_title = '$item_title', s_description = '$item_description' where fk_i_item_id = '$item_p_key';
-
-                select pk_i_id into @region_id from os3n_t_region where s_name = '$region_name';
-                select pk_i_id into @city_id from os3n_t_city where s_name = '$city_name';
-
-                set @fk_i_city_area_id := null;
-                set @s_city_area := '';
-
-                -- insert user definned params 
-                update os3n_t_item_location set s_address = '$user_address', s_zip = '$zip', fk_i_region_id = @region_id, s_region = ' $region_name', fk_i_city_id = @city_id, 
-                s_city = '$city_name', fk_i_city_area_id =@fk_i_city_area_id , s_city_area = @s_city_area, d_coord_lat = '$d_coord_lat', d_coord_long = '$d_coord_long' where fk_i_item_id = '$item_p_key';
-                SET FOREIGN_KEY_CHECKS=1;
-                commit;
-            ";
-            $result = $this->con->multi_query($query);
-            return $result;
-        }
-        public function deleteItem($item_p_key, $region_name, $city_name){
-            $query = "
-                start transaction;
-                SET FOREIGN_KEY_CHECKS=0;
-                
-                -- get category id, city_id, region_id from item
                 select fk_i_category_id into @category_id from os3n_t_item where pk_i_id =  '$item_p_key';
                 select pk_i_id into @region_id from os3n_t_region where s_name = '$region_name';
                 select pk_i_id into @city_id from os3n_t_city where s_name = '$city_name';
@@ -370,26 +363,53 @@
                 delete from os3n_t_item_location where fk_i_item_id =  '$item_p_key';
                 delete from os3n_t_item_stats where fk_i_item_id =  '$item_p_key';
 
-                -- update number of items
-                update os3n_t_category_stats set i_num_items = i_num_items - 1 where fk_i_category_id = @category_id;
-
-                -- update number of city items
-                update os3n_t_city_stats set i_num_items = i_num_items - 1 where fk_i_city_id = @city_id;
-
-                -- update number of regional items
-                update os3n_t_region_stats set i_num_items = i_num_items - 1 where fk_i_region_id = @region_id;
 
                 SET FOREIGN_KEY_CHECKS=1;
                 commit;
             ";
+            
+            // update os3n_t_category_stats set i_num_items = i_num_items - 1 where fk_i_category_id = @category_id;
+
+            // update os3n_t_city_stats set i_num_items = i_num_items - 1 where fk_i_city_id = @city_id;
+
+            // update os3n_t_region_stats set i_num_items = i_num_items - 1 where fk_i_region_id = @region_id;
             $result = $this->con->multi_query($query);
+            $get_item_id = 0;
+            do {
+                if ($results = $this->con-> store_result()) {
+                    while ($row = $results -> fetch_row()) {
+                        if ($row[0] != '') {
+                            $get_item_id = $row[0];
+                        }
+                    }
+                    $results -> free_result();
+                }
+            } while ($this->con-> next_result());
+            echo mysqli_error($this->con);
+
+            $send = array();
+            $send['success'] = $result;
             return $result;
         }
-        public function insertIntoItem($user_id, $category_id, $item_price, $user_ip, $dt_expiration, $item_title, $item_description, 
-                                        $user_address, $zip,  $region_name, $city_name, $d_coord_lat, $d_coord_long, $image){
-                         
+        public function insertIntoItem(
+            $user_id,
+            $category_id,
+            $item_price,
+            $user_ip,
+            $dt_expiration,
+            $item_title,
+            $item_description,
+            $user_address,
+            $zip,
+            $region_name,
+            $city_name,
+            $d_coord_lat,
+            $d_coord_long
+        )
+        {
             $query = "
                 start transaction;
+
                 set @fk_c_currency_code := 'BDT';
                 set @b_premium := 0;
                 set @b_enabled := 1;
@@ -405,6 +425,8 @@
                 insert into os3n_t_item(fk_i_user_id, fk_i_category_id, dt_pub_date, dt_mod_date, f_price, i_price, fk_c_currency_code, s_contact_name, s_contact_email, s_ip, b_premium, b_enabled, b_active, b_spam, s_secret, b_show_email, dt_expiration) values
                 ('$user_id', '$category_id', @dt_pub_date, null, null, '$item_price', @fk_c_currency_code, @s_contact_name, @s_contact_email, '$user_ip', @b_premium, @b_enabled, @b_active, @b_spam, @s_secret, @b_show_email, '$dt_expiration');
                 SELECT LAST_INSERT_ID() into @item_primary_key;
+
+                SELECT @item_primary_key;
 
                 set @fk_c_locale_code := 'en_US';
                 set @s_title := '$item_title';
@@ -444,29 +466,127 @@
 
                 set @s_name := 'random';
                 set @s_extension := 'jpg';
-                set @s_content_type := 'image/jepg;
-                set @s_path := 'oc-content/uploads/'$category_id/'';
+                set @s_content_type := 'image/jepg';
+                set @s_path := 'oc-content/uploads/$category_id/';
 
                 insert into os3n_t_item_resource(fk_i_item_id, s_name, s_extension, s_content_type, s_path) values(@item_primary_key, @s_name, @s_extension, @s_content_type, @s_path);
+
                 commit;
                 ";
+               
+            $result = $this->con->multi_query($query);
+            $get_item_id = 0;
+            do {
+                if ($results = $this->con-> store_result()) {
+                    while ($row = $results -> fetch_row()) {
+                        if ($row[0] != '') {
+                            $get_item_id = $row[0];
+                        }
+                    }
+                    $results -> free_result();
+                }
+            } while ($this->con-> next_result());
+            echo mysqli_error($this->con);
+
+            $send = array();
+            $send['success'] = $result;
+            $send['category_id'] = $category_id;
+            $send['item_id'] = $get_item_id;
+
+            return $send;
+        }
+       
+        public function updateItem(
+            $item_p_key,
+            $category_id,
+            $item_price,
+            $item_title,
+            $item_description,
+            $user_address,
+            $zip,
+            $ip,
+            $region_name,
+            $city_name,
+            $d_coord_lat,
+            $d_coord_long
+        )
+        {
+            $query = "
+                start transaction;
+                set @dt_mod_date := now();
+                
+                update os3n_t_item set fk_i_category_id = '$category_id', dt_mod_date = @dt_mod_date, i_price = '$item_price',  s_ip = '$ip'  where pk_i_id = '$item_p_key';  
+                
+                set @s_title := '$item_title';
+                set @item_short_description = '$item_description';
+                
+                update os3n_t_item_description set s_title = @s_title, s_description = @item_short_description where fk_i_item_id = '$item_p_key';
+           
+                set @s_address := '$user_address';
+                set @s_zip := '$zip'; 
+                set @s_name_region := '$region_name';	
+                set @s_name_city := '$city_name';	
+                
+                select pk_i_id into @region_id from os3n_t_region where s_name = @s_name_region;
+                select pk_i_id into @city_id from os3n_t_city where s_name = @s_name_city;
+                
+                set @fk_i_city_area_id := null;
+                set @s_city_area := '';
+                set @d_coord_lat := '$d_coord_lat';
+                set @d_coord_long := '$d_coord_long';
+                
+                update os3n_t_item_location set  s_address = @s_address , s_zip = @s_zip, fk_i_region_id = @region_id, s_region = @s_name_region, fk_i_city_id = @city_id , s_city = @s_name_city,
+                fk_i_city_area_id =  @fk_i_city_area_id, s_city_area = @s_city_area, d_coord_lat = @d_coord_lat, d_coord_long = @d_coord_long where fk_i_item_id = '$item_p_key';
+                
+                set @s_name := 'random';
+                set @s_extension := 'jpg';
+                set @s_content_type := 'image/jepg';
+                set @s_path := 'oc-content/uploads/$category_id/';
+                
+                update os3n_t_item_resource set s_name = @s_name , s_extension = @s_extension, s_content_type = @s_content_type, s_path  = @s_path where fk_i_item_id = '$item_p_key'; 
+                
+                commit;
+            ";
 
             $result = $this->con->multi_query($query);
-            if($result){
-                $upload_path = "./oc-content/uploads/$category_id/";
-                $filename = "234.jpg";
-                if(!is_dir($upload_path)){
-                    mkdir($upload_path);
-                    move_uploaded_file($image['tmp_name'], $upload_path.$filename);
-                }else{
-                    move_uploaded_file($image['tmp_name'], $upload_path.$filename);
+            $get_item_id = 0;
+            do {
+                if ($results = $this->con-> store_result()) {
+                    while ($row = $results -> fetch_row()) {
+                        if ($row[0] != '') {
+                            $get_item_id = $row[0];
+                        }
+                    }
+                    $results -> free_result();
                 }
-                
-            }
-            return $result; 
+            } while ($this->con-> next_result());
+            echo mysqli_error($this->con);
+
+            $send = array();
+            $send['success'] = $result;
+
+            return $result;
         }
-        public function createNewUser($full_user_name, $user_name, $password, $email, $website, $landline, $mobile_no, $user_address, $zip, $has_company, 
-                                        $region_name, $city_name, $ip, $coord_lat, $coord_long, $user_desc){
+
+        public function createNewUser(
+            $full_user_name,
+            $user_name,
+            $password,
+            $email,
+            $website,
+            $landline,
+            $mobile_no,
+            $user_address,
+            $zip,
+            $has_company,
+            $region_name,
+            $city_name,
+            $ip,
+            $coord_lat,
+            $coord_long,
+            $user_desc
+        )
+        {
             $query = "
                 start transaction;
                 set @s_name := '$full_user_name';
@@ -520,26 +640,32 @@
             $result = $this->con->multi_query($query);
             $results = array();
             $results['error'] = $result;
-            return $results; 
+            return $results;
         }
-        public function checkPasswordByEmail($email, $password){
-            $stmt = $this->con->prepare("select s_password, pk_i_id from os3n_t_user where s_email = ?;");
-            $stmt->bind_param("s", $email);
+        public function checkPasswordByEmail($email, $password)
+        {
+            $stmt = $this->con->prepare("select s_region, s_city, s_password, pk_i_id from os3n_t_user where (s_email = ? or s_phone_mobile = ? );");
+            $stmt->bind_param("ss", $email, $email);
             $stmt->execute();
-            $stmt->bind_result($s_password, $pk_i_id);
+            $stmt->bind_result($region, $city, $s_password, $pk_i_id);
 
             $stmt->fetch();
             $returning = array();
-            if($s_password == $password){
+            if ($s_password == $password) {
                 $returning['error'] = false;
                 $returning['user_id'] = $pk_i_id;
-            }else{
+                $returning['city'] = $city;
+                $returning['region'] = $region;
+            } else {
                 $returning['error'] = true;
                 $returning['user_id'] = '';
+                $returning['city'] = '';
+                $returning['region'] = '';
             }
             return $returning;
         }
-        public function getUserIdWhenRegistering($email, $password){
+        public function getUserIdWhenRegistering($email, $password)
+        {
             $stmt = $this->con->prepare("select pk_i_id from os3n_t_user where s_email = ? and s_password = ? ;");
             $stmt->bind_param("ss", $email, $password);
             $stmt->execute();
@@ -547,14 +673,16 @@
             $stmt->fetch();
             return $pk_i_id;
         }
-        public function imageUpload($image, $title){
+        public function imageUpload($image, $title)
+        {
             $upload_path = "uploads/$title.jpg";
             $query = "inser into image(title, path) values ('$title', '$image_path');";
-            if($query){
-                $this->con->file_put_contents($upload_path, base64_decode($image));
-            }       
+            if ($query) {
+                $done = $this->con->file_put_contents($upload_path, base64_decode($image));
+            }
         }
-        public function addComment($user_id, $item_id, $comment_title, $comment_body){
+        public function addComment($user_id, $item_id, $comment_title, $comment_body)
+        {
             $query = "
                 start transaction;
                 set @pk_i_id := '$user_id';
@@ -583,25 +711,44 @@
             $result = $this->con->multi_query($query);
             $results = array();
             $results['error'] = $result;
-            return $result; 
+            return $result;
         }
-        public function updateComment($comment_body, $comment_title, $comment_id){
+        public function updateComment($comment_body, $comment_title, $comment_id)
+        {
             $stmt = $this->con->prepare("update os3n_t_item_comment set s_body = ? , s_title = ? where pk_i_id = ?;");
             $stmt->bind_param("ssi", $comment_body, $comment_title, $comment_id);
             $return = $stmt->execute();
             // $stmt->fetch();
             return $return;
         }
-        public function deleteComment($user_id, $comment_id){
+        public function deleteComment($user_id, $comment_id)
+        {
             $query = "
                 Delete from os3n_t_item_comment where pk_i_id = '$comment_id';
                 update os3n_t_user set i_comments = i_comments - 1 where pk_i_id = '$user_id';
             ";
             $result = $this->con->multi_query($query);
-            return $result; 
+            return $result;
         }
-        public function updateUserInfo($user_id, $full_user_name, $user_name, $password, $email, $website, $landline, $mobile_no, $user_address, $zip, $has_company, 
-                                        $region_name, $city_name, $ip, $coord_lat, $coord_long, $user_desc){
+        public function updateUserInfo(
+            $user_id,
+            $full_user_name,
+            $user_name,
+            $password,
+            $email,
+            $website,
+            $landline,
+            $mobile_no,
+            $user_address,
+            $zip,
+            $has_company,
+            $region_name,
+            $city_name,
+            $ip,
+            $coord_lat,
+            $coord_long,
+            $user_desc)
+            {
             $query = "
                 start transaction;
                 set @user_id := '$user_id';
@@ -653,8 +800,10 @@
                 
             ";
             $result = $this->con->multi_query($query);
-            return $result; 
+            return $result;
         }
     }
-    
+
+
+
 
